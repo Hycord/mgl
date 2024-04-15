@@ -3,26 +3,35 @@
 #include <iostream>
 #include <string>
 
-#include "utils/arg.h"
 #include "utils/String.h"
+#include "utils/arg.h"
 #include "utils/OpenGL.h"
-#include "lib/FileReader.h"
+#include "utils/FileReader.h"
+
 #include "lib/Shader.h"
+#include "lib/Buffer/IndexBuffer.h"
+#include "lib/Buffer/VertexBuffer.h"
+#include "lib/Array/VertexArray.h"
 
 int main(int, char *argv[])
 {
     if (!glfwInit())
         return -1;
 
+    GLCall(glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3));
+    GLCall(glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3));
+    GLCall(glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE));
+
     GLFWwindow *window;
-    window = glfwCreateWindow(480, 480, "MGL", NULL, NULL);
+    GLCall(window = glfwCreateWindow(480, 480, "MGL", NULL, NULL));
     if (!window)
     {
         std::cout << "[GLFW ERROR]: Failed to create window" << std::endl;
-        glfwTerminate();
+        GLCall(glfwTerminate());
         return -1;
     }
-    glfwMakeContextCurrent(window);
+    GLCall(glfwMakeContextCurrent(window));
+    GLCall(glfwSwapInterval(1));
 
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK)
@@ -34,7 +43,7 @@ int main(int, char *argv[])
     argh::parser io(argv);
     if (io[{"gld", "gldebug"}])
     {
-        std::cout << "[DEBUG]: OpenGL Version -> " << glGetString(GL_VERSION) << std::endl;
+        GLCall(std::cout << "[DEBUG]: OpenGL Version -> " << glGetString(GL_VERSION) << std::endl);
     }
 
     float vertexes[] = {
@@ -49,30 +58,29 @@ int main(int, char *argv[])
         0, 1, 2,
         2, 3, 0};
 
-    unsigned int buffer;
-    GLCall(glGenBuffers(1, &buffer));
-    GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer));
-    GLCall(glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), vertexes, GL_STATIC_DRAW));
+    unsigned int vertexArrayObject;
+    GLCall(glGenVertexArrays(1, &vertexArrayObject));
+    GLCall(glBindVertexArray(vertexArrayObject));
 
-    GLCall(glEnableVertexAttribArray(0));
-    GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0));
+    VertexArray va;
+    VertexBuffer vb(vertexes, 4 * 2 * sizeof(float));
 
-    unsigned int ibo;
-    GLCall(glGenBuffers(1, &ibo));
-    GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
-    GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW));
+    VertexBufferLayout layout;
+    layout.Push<float>(2);
 
-    std::string rawShader = ReadFile("static/shader.glsl");
-    ShaderProgramSource shaders = ParseShader(rawShader);
+    va.AddBuffer(vb, layout);
 
-    // std::string vertexShader = ReadFile("static/shaders/vertex.glsl");
-    // std::string fragmentShader = ReadFile("static/shaders/fragment.glsl");
-    unsigned int shaderId = CreateShader(shaders.VertexSource, shaders.FragmentSource);
-    GLCall(glUseProgram(shaderId));
+    IndexBuffer ib(indices, 6);
 
-    GLCall(int location = glGetUniformLocation(shaderId, "u_Color"));
-    ASSERT((location != -1) == 1);
-    GLCall(glUniform4f(location, 0.0f, 0.0f, 0.0f, 1.0f));
+    Shader shader("static/shader.glsl");
+    shader.Bind();
+
+    shader.SetUniform4f("u_Color", 0.0f, 0.0f, 0.0f, 1.0f);
+
+    va.Unbind();
+    shader.Unbind();
+    vb.Unbind();
+    ib.Unbind();
 
     float r = 0.32f;
     float increment = 0.01f;
@@ -82,7 +90,12 @@ int main(int, char *argv[])
         /* Render here */
         GLCall(glClear(GL_COLOR_BUFFER_BIT));
 
-        GLCall(glUniform4f(location, r, r, r, 1.0f));
+        shader.Bind();
+        shader.SetUniform4f("u_Color", r, 1.0f, 1.0f, 1.0f);
+
+        va.Bind();
+        ib.Bind();
+
         GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
         if (r > 1.0f)
@@ -96,13 +109,12 @@ int main(int, char *argv[])
         r += increment;
 
         /* Swap front and back buffers */
-        glfwSwapBuffers(window);
+        GLCall(glfwSwapBuffers(window));
 
         /* Poll for and process events */
-        glfwPollEvents();
+        GLCall(glfwPollEvents());
     }
 
-    GLCall(glDeleteProgram(shaderId));
     glfwTerminate();
     return 0;
 }

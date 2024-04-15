@@ -7,8 +7,59 @@
 
 #include "../utils/String.h"
 #include "../utils/OpenGL.h"
+#include "../utils/FileReader.h"
 
-ShaderProgramSource ParseShader(const std::string &data)
+Shader::Shader(const std::string &filepath)
+    : m_Filepath(filepath), m_RendererID(0), m_UniformLocationCache()
+{
+    std::string rawShader = ReadFile(m_Filepath);
+    ShaderProgramSource shaders = Shader::ParseShader(rawShader);
+    m_RendererID = Shader::CreateShader(shaders.VertexSource, shaders.FragmentSource);
+}
+
+Shader::~Shader()
+{
+    GLCall(glDeleteProgram(m_RendererID));
+}
+
+void Shader::Bind() const
+{
+    GLCall(glUseProgram(m_RendererID));
+}
+void Shader::Unbind() const
+{
+    GLCall(glUseProgram(0));
+}
+
+void Shader::SetUniform4f(const std::string name, float v0, float v1, float v2, float v3)
+{
+    GLCall(glUniform4f(GetUniformLocation(name), v0, v1, v2, v3));
+}
+void Shader::SetUniform1f(const std::string name, float v0)
+{
+    GLCall(glUniform1f(GetUniformLocation(name), v0));
+}
+
+
+int Shader::GetUniformLocation(const std::string &name)
+{
+
+    if (m_UniformLocationCache.find(name) != m_UniformLocationCache.end())
+    {
+        return m_UniformLocationCache[name];
+    }
+
+    GLCall(int location = glGetUniformLocation(m_RendererID, name.c_str()));
+    m_UniformLocationCache[name] = location;
+
+    if (location == -1)
+    {
+        std::cout << "[WARNING]: Inaccesable uniform: " << name << std::endl;
+    }
+    return location;
+}
+
+ShaderProgramSource Shader::ParseShader(const std::string &data)
 {
     std::istringstream stream(data);
 
@@ -48,7 +99,7 @@ ShaderProgramSource ParseShader(const std::string &data)
         ss[1].str()};
 }
 
-static unsigned int CompileShader(unsigned int type, const std::string &source)
+unsigned int Shader::CompileShader(unsigned int type, const std::string &source)
 {
 
     GLCall(unsigned int id = glCreateShader(type));
@@ -56,7 +107,7 @@ static unsigned int CompileShader(unsigned int type, const std::string &source)
     const char *src = source.c_str();
 
     GLCall(glShaderSource(id, 1, &src, nullptr));
-   GLCall( glCompileShader(id));
+    GLCall(glCompileShader(id));
 
     int result;
     GLCall(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
@@ -68,7 +119,7 @@ static unsigned int CompileShader(unsigned int type, const std::string &source)
 
         char *message = (char *)alloca(length * sizeof(char));
 
-       GLCall( glGetShaderInfoLog(id, length, &length, message));
+        GLCall(glGetShaderInfoLog(id, length, &length, message));
 
         std::string typeName = type == GL_VERTEX_SHADER ? "vertex" : "fragment";
 
@@ -82,7 +133,7 @@ static unsigned int CompileShader(unsigned int type, const std::string &source)
     return id;
 }
 
-unsigned int CreateShader(const std::string &vertexShader, const std::string &fragmentShader)
+unsigned int Shader::CreateShader(const std::string &vertexShader, const std::string &fragmentShader)
 {
     GLCall(unsigned int programId = glCreateProgram());
 

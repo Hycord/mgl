@@ -1,2 +1,2 @@
 #!/bin/bash
-./make.sh && ./mgl $@
+./make.sh && clear && ./mgl $@
