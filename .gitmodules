@@ -1,0 +1,6 @@
+[submodule "include/glew"]
+	path = include/glew
+	url = git@github.com:nigels-com/glew.git
+[submodule "include/glfw"]
+	path = include/glfw
+	url = git@github.com:glfw/glfw.git
