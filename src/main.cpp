@@ -2,7 +2,71 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+#include "lib/FileReader.h"
 #include "include/argh.h"
+
+std::string repeat(const std::string &input, unsigned num)
+{
+    std::string ret;
+    ret.reserve(input.size() * num);
+    while (num--)
+        ret += input;
+    return ret;
+}
+
+static unsigned int CompileShader(unsigned int type, const std::string &source)
+{
+
+    unsigned int id = glCreateShader(type);
+
+    const char *src = source.c_str();
+
+    glShaderSource(id, 1, &src, nullptr);
+    glCompileShader(id);
+
+    int result;
+    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+
+    if (result == GL_FALSE)
+    {
+        int length;
+        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+
+        char *message = (char *)alloca(length * sizeof(char));
+
+        glGetShaderInfoLog(id, length, &length, message);
+
+        std::string typeName = type == GL_VERTEX_SHADER ? "vertex" : "fragment";
+
+        std::cout << "[SHADER ERROR]: Failed to compile " << typeName << " shader \n[" << typeName << " " << repeat("-", 10 - typeName.length()) << ">]: ";
+        std::cout << message << std::endl;
+
+        glDeleteShader(id);
+        return 0;
+    }
+
+    return id;
+}
+
+static unsigned int CreateShader(const std::string &vertexShader, const std::string &fragmentShader)
+{
+    unsigned int programId = glCreateProgram();
+
+    unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
+    unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
+
+    glAttachShader(programId, vs);
+    glAttachShader(programId, fs);
+
+    glLinkProgram(programId);
+    glValidateProgram(programId);
+
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+
+    return programId;
+}
+
 
 int main(int, char *argv[])
 {
@@ -15,7 +79,7 @@ int main(int, char *argv[])
         return -1;
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(640, 480, "MSkia", NULL, NULL);
+    window = glfwCreateWindow(480, 480, "MSkia", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -28,16 +92,14 @@ int main(int, char *argv[])
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK)
     {
-        std::cout << "Error initializing glew" << std::endl;
+        std::cout << "[GLEW ERROR]: Failed to initialize" << std::endl;
         return -1;
     }
 
     if (io[{"gld", "gldebug"}])
     {
-
-        std::cout << glGetString(GL_VERSION) << std::endl;
+        std::cout << "[DEBUG]: OpenGL Version -> " << glGetString(GL_VERSION) << std::endl;
     }
-
 
     unsigned int buffer;
     glGenBuffers(1, &buffer);
@@ -51,13 +113,15 @@ int main(int, char *argv[])
     };
     glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), pos, GL_STATIC_DRAW);
 
-
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
-    
-    
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+    std::string vertexShader = ReadFile("src/static/shaders/vertex.glsl");
+    std::string fragmentShader = ReadFile("src/static/shaders/fragment.glsl");
+    unsigned int shaderId = CreateShader(vertexShader, fragmentShader);
+    glUseProgram(shaderId);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
