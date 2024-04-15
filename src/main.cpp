@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "lib/FileReader.h"
-#include "include/argh.h"
+#include "lib/argh.h"
 
 std::string repeat(const std::string &input, unsigned num)
 {
@@ -116,8 +116,8 @@ int main(int, char *argv[])
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
-    std::string vertexShader = ReadFile("src/static/shaders/vertex.glsl");
-    std::string fragmentShader = ReadFile("src/static/shaders/fragment.glsl");
+    std::string vertexShader = ReadFile("static/shaders/vertex.glsl");
+    std::string fragmentShader = ReadFile("static/shaders/fragment.glsl");
     unsigned int shaderId = CreateShader(vertexShader, fragmentShader);
     glUseProgram(shaderId);
 
