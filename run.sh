@@ -1,2 +1,2 @@
 #!/bin/bash
-./make.sh && ./msk $@
+./make.sh && ./mgl $@
