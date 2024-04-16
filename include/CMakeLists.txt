@@ -19,4 +19,3 @@ endif()
 
 include_directories(${GLEW_INCLUDE_DIRS})
 
-

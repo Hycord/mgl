@@ -1,37 +1,45 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+
 #include <iostream>
 #include <string>
 
+#include "vendor/argh.h"
+
 #include "utils/String.h"
-#include "utils/arg.h"
 #include "utils/OpenGL.h"
 #include "utils/FileReader.h"
 
-#include "lib/Shader.h"
-#include "lib/Buffer/IndexBuffer.h"
-#include "lib/Buffer/VertexBuffer.h"
-#include "lib/Array/VertexArray.h"
+#include "lib/draw/Shader.h"
+#include "lib/draw/Renderer.h"
+#include "lib/draw/Texture.h"
+
+#include "lib/data/Buffer/IndexBuffer.h"
+#include "lib/data/Buffer/VertexBuffer.h"
+#include "lib/data/Array/VertexArray.h"
 
 int main(int, char *argv[])
 {
     if (!glfwInit())
         return -1;
 
-    GLCall(glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3));
-    GLCall(glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3));
-    GLCall(glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE));
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow *window;
-    GLCall(window = glfwCreateWindow(480, 480, "MGL", NULL, NULL));
+    window = glfwCreateWindow(630, 480, "MGL", NULL, NULL);
     if (!window)
     {
         std::cout << "[GLFW ERROR]: Failed to create window" << std::endl;
-        GLCall(glfwTerminate());
+        glfwTerminate();
         return -1;
     }
-    GLCall(glfwMakeContextCurrent(window));
-    GLCall(glfwSwapInterval(1));
+    glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
 
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK)
@@ -40,6 +48,9 @@ int main(int, char *argv[])
         return -1;
     }
 
+    GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    GLCall(glEnable(GL_BLEND));
+
     argh::parser io(argv);
     if (io[{"gld", "gldebug"}])
     {
@@ -47,72 +58,55 @@ int main(int, char *argv[])
     }
 
     float vertexes[] = {
-        -0.5f, -0.5f, //
-        0.5f, -0.5,   //
-        0.5f, 0.5f,   //
-        -0.5f, 0.5,   //
-
+        -0.5f, -0.5f, 0.0f, 0.0f, //
+        0.5f, -0.5, 1.0f, 0.0f,   //
+        0.5f, 0.5f, 1.0f, 1.0f,   //
+        -0.5f, 0.5f, 0.0f, 1.0f,  //
     };
 
     unsigned int indices[] = {
         0, 1, 2,
         2, 3, 0};
 
-    unsigned int vertexArrayObject;
-    GLCall(glGenVertexArrays(1, &vertexArrayObject));
-    GLCall(glBindVertexArray(vertexArrayObject));
+    VertexArray vertexArray;
+    VertexBuffer vertexBuffer(vertexes, 4 * 4 * sizeof(float));
 
-    VertexArray va;
-    VertexBuffer vb(vertexes, 4 * 2 * sizeof(float));
+    VertexBufferLayout vbLayout;
+    vbLayout.Push<float>(2);
+    vbLayout.Push<float>(2);
 
-    VertexBufferLayout layout;
-    layout.Push<float>(2);
+    vertexArray.AddBuffer(vertexBuffer, vbLayout);
 
-    va.AddBuffer(vb, layout);
+    IndexBuffer indexBuffer(indices, 6);
 
-    IndexBuffer ib(indices, 6);
+    glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
 
     Shader shader("static/shader.glsl");
     shader.Bind();
+    shader.SetUniform4f("u_Color", 0.32f, 0.78f, 0.7f, 1.0f);
+    shader.SetUniformMat4f("u_MVP", proj);
 
-    shader.SetUniform4f("u_Color", 0.0f, 0.0f, 0.0f, 1.0f);
+    Texture texture("static/textures/minecraft.png");
+    texture.Bind();
+    shader.SetUniform1i("u_Texture", 0);
 
-    va.Unbind();
+    vertexArray.Unbind();
+    vertexBuffer.Unbind();
+    indexBuffer.Unbind();
     shader.Unbind();
-    vb.Unbind();
-    ib.Unbind();
 
-    float r = 0.32f;
-    float increment = 0.01f;
-    /* Loop until the user closes the window */
+    Renderer renderer;
+
     while (!glfwWindowShouldClose(window))
     {
-        /* Render here */
-        GLCall(glClear(GL_COLOR_BUFFER_BIT));
-
+        renderer.Clear();
         shader.Bind();
-        shader.SetUniform4f("u_Color", r, 1.0f, 1.0f, 1.0f);
+        shader.SetUniform4f("u_Color", 0.32f, 0.78f, 0.7f, 1.0f);
 
-        va.Bind();
-        ib.Bind();
+        renderer.Draw(vertexArray, indexBuffer, shader);
 
-        GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
-
-        if (r > 1.0f)
-        {
-            increment = -increment;
-        }
-        else if (r < 0.0f)
-        {
-            increment = -increment;
-        }
-        r += increment;
-
-        /* Swap front and back buffers */
-        GLCall(glfwSwapBuffers(window));
-
-        /* Poll for and process events */
-        GLCall(glfwPollEvents());
+        glfwSwapBuffers(window);
+        glfwPollEvents();
     }
 
     glfwTerminate();

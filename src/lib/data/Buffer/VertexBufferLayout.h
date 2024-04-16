@@ -8,7 +8,7 @@
 #include <GL/glew.h>
 #include <iostream>
 #include <vector>
-#include "../../utils/globals.h"
+#include "../../../utils/globals.h"
 
 struct VertexBufferElement
 {
@@ -46,10 +46,8 @@ public:
     template <typename T>
     void Push(unsigned int count)
     {
-        std::cout << "uh oh"<< std::endl;
+        std::cout << "uh oh" << std::endl;
     }
-
-   
 
     inline const std::vector<VertexBufferElement> GetElements() const { return m_Elements; }
     inline const unsigned int GetStride() const { return m_Stride; };

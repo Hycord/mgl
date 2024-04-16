@@ -5,8 +5,8 @@
 
 #include "VertexBuffer.h"
 #include <GL/glew.h>
-#include "../../utils/globals.h"
-#include "../../utils/OpenGL.h"
+#include "../../../utils/globals.h"
+#include "../../../utils/OpenGL.h"
 
 VertexBuffer::VertexBuffer(const void *data, unsigned int size)
 {

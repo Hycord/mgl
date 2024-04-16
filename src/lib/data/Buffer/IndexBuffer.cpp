@@ -5,8 +5,8 @@
 
 #include "IndexBuffer.h"
 #include <GL/glew.h>
-#include "../../utils/globals.h"
-#include "../../utils/OpenGL.h"
+#include "../../../utils/globals.h"
+#include "../../../utils/OpenGL.h"
 
 IndexBuffer::IndexBuffer(const unsigned int *data, unsigned int count)
 : m_Count(count)

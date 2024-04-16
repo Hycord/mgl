@@ -5,7 +5,7 @@
 
 #include "VertexArray.h"
 #include <iostream>
-#include "../../utils/OpenGL.h"
+#include "../../../utils/OpenGL.h"
 
 VertexArray::VertexArray(/* args */)
 {
