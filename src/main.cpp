@@ -41,7 +41,7 @@ int main(int, char *argv[])
         return -1;
     }
     glfwMakeContextCurrent(window);
-    // glfwSwapInterval(1);
+    glfwSwapInterval(1);
 
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK)
@@ -105,11 +105,8 @@ int main(int, char *argv[])
     ImGui::StyleColorsDark();
     ImGui_ImplOpenGL3_Init((char *)glGetString(330));
 
-    // ImGuiIO &io = ImGui::GetIO();
-    // (void)io;
-    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-
-    glm::vec3 translation(0, 0, 0);
+    glm::vec3 translationA(0, 0, 0);
+    glm::vec3 translationB(200, 0, 0);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -119,22 +116,37 @@ int main(int, char *argv[])
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), translation);
-        glm::mat4 mvpMatrix = projectionMatrix * viewMatrix * modelMatrix; // must be in reverse order. matrix multiplication is _not_ commutitive
+        {
+            glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), translationA);
+            glm::mat4 mvpMatrix = projectionMatrix * viewMatrix * modelMatrix; // must be in reverse order. matrix multiplication is _not_ commutitive
 
-        shader.Bind();
-        shader.SetUniform4f("u_Color", 0.32f, 0.78f, 0.7f, 1.0f);
-        shader.SetUniformMat4f("u_MVP", mvpMatrix);
+            shader.Bind();
+            shader.SetUniform4f("u_Color", 0.32f, 0.78f, 0.7f, 1.0f);
+            shader.SetUniformMat4f("u_MVP", mvpMatrix);
+            renderer.Draw(vertexArray, indexBuffer, shader);
+        }
+        {
+            glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), translationB);
+            glm::mat4 mvpMatrix = projectionMatrix * viewMatrix * modelMatrix; // must be in reverse order. matrix multiplication is _not_ commutitive
 
-        renderer.Draw(vertexArray, indexBuffer, shader);
-
-        static float f = 0.0f;
-        static int counter = 0;
+            shader.Bind();
+            shader.SetUniform4f("u_Color", 0.32f, 0.78f, 0.7f, 1.0f);
+            shader.SetUniformMat4f("u_MVP", mvpMatrix);
+            renderer.Draw(vertexArray, indexBuffer, shader);
+        }
 
         {
-            ImGui::SliderFloat("X", &translation.x, 0.0f, 960.0f); // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::SliderFloat("Y", &translation.y, 0.0f, 540.0f); // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::SliderFloat("Z", &translation.z, 0.0f, 1.0f);   // Edit 1 float using a slider from 0.0f to 1.0f
+            ImGui::Text("A:");
+            ImGui::SliderFloat("X##a", &translationA.x, 0.0f, 960.0f);
+            ImGui::SliderFloat("Y##a", &translationA.y, 0.0f, 540.0f);
+            ImGui::SliderFloat("Z##a", &translationA.z, 0.0f, 1.0f);
+
+            ImGui::Spacing();
+            ImGui::Text("B:");
+            ImGui::SliderFloat("X##b", &translationB.x, 0.0f, 960.0f);
+            ImGui::SliderFloat("Y##b", &translationB.y, 0.0f, 540.0f);
+            ImGui::SliderFloat("Z##b", &translationB.z, 0.0f, 1.0f);
+
             ImGui::Text("%.3f ms (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         }
         ImGui::Render();
