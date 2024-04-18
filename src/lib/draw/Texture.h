@@ -7,7 +7,7 @@
 #include <GL/glew.h>
 #include <string>
 #include "../../utils/OpenGL.h"
-#include "../../vendor/stb_image.h"
+#include "stb/stb_image.h"
 
 class Texture
 {

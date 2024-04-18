@@ -7,3 +7,9 @@
 [submodule "include/glm"]
 	path = include/glm
 	url = git@github.com:g-truc/glm.git
+[submodule "include/argh"]
+	path = include/argh
+	url = git@github.com:adishavit/argh.git
+[submodule "include/stb"]
+	path = include/stb
+	url = git@github.com:nothings/stb.git

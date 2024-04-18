@@ -18,4 +18,4 @@ endif()
 # add_subdirectory( glew )
 
 include_directories(${GLEW_INCLUDE_DIRS})
-
+include_directories("./imgui" "./argh" "./stb")
