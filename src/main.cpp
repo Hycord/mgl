@@ -6,6 +6,7 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "argh/argh.h"
+#include "lib/engine/tests/Test.h"
 
 #include "vendor/imgui/imgui.h"
 #include "vendor/imgui/imgui_impl_glfw.h"
@@ -18,6 +19,9 @@
 #include "lib/draw/Shader.h"
 #include "lib/draw/Renderer.h"
 #include "lib/draw/Texture.h"
+
+#include "lib/engine/tests/TestMenu.h"
+#include "lib/engine/tests/TestClearColor.h"
 
 #include "lib/data/Buffer/IndexBuffer.h"
 #include "lib/data/Buffer/VertexBuffer.h"
@@ -59,44 +63,6 @@ int main(int, char *argv[])
         GLCall(std::cout << "[DEBUG]: OpenGL Version -> " << glGetString(GL_VERSION) << std::endl);
     }
 
-    float vertexes[] = {
-        -50.0f, -50.0f, 0.0f, 0.0f, // 0
-        50.0f, -50.0f, 1.0f, 0.0f,  // 1
-        50.0f, 50.0f, 1.0f, 1.0f,   // 2
-        -50.0f, 50.0f, 0.0f, 1.0f,  // 3
-    };
-
-    unsigned int indices[] = {
-        0, 1, 2,
-        2, 3, 0};
-
-    VertexArray vertexArray;
-    VertexBuffer vertexBuffer(vertexes, 4 * 4 * sizeof(float));
-
-    VertexBufferLayout vbLayout;
-    vbLayout.Push<float>(2);
-    vbLayout.Push<float>(2);
-
-    vertexArray.AddBuffer(vertexBuffer, vbLayout);
-
-    IndexBuffer indexBuffer(indices, 6);
-
-    glm::mat4 projectionMatrix = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
-    glm::mat4 viewMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
-
-    Shader shader("static/shader.glsl");
-    shader.Bind();
-    shader.SetUniform4f("u_Color", 0.32f, 0.78f, 0.7f, 1.0f);
-
-    Texture texture("static/textures/minecraft.png");
-    texture.Bind();
-    shader.SetUniform1i("u_Texture", 0);
-
-    vertexArray.Unbind();
-    vertexBuffer.Unbind();
-    indexBuffer.Unbind();
-    shader.Unbind();
-
     Renderer renderer;
 
     IMGUI_CHECKVERSION();
@@ -105,8 +71,12 @@ int main(int, char *argv[])
     ImGui::StyleColorsDark();
     ImGui_ImplOpenGL3_Init((char *)glGetString(330));
 
-    glm::vec3 translationA(0, 0, 0);
-    glm::vec3 translationB(200, 0, 0);
+    test::Test *currentTest = nullptr;
+
+    test::TestMenu *testMenu = new test::TestMenu(currentTest);
+    currentTest = testMenu;
+
+    testMenu->RegisterTest<test::TestClearColor>("Clear Color");
 
     while (!glfwWindowShouldClose(window))
     {
@@ -116,39 +86,21 @@ int main(int, char *argv[])
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        if (currentTest)
         {
-            glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), translationA);
-            glm::mat4 mvpMatrix = projectionMatrix * viewMatrix * modelMatrix; // must be in reverse order. matrix multiplication is _not_ commutitive
+            currentTest->OnUpdate(0.0f);
+            currentTest->OnRender();
+            ImGui::Begin("Test");
+            if (currentTest != testMenu && ImGui::Button("Home"))
+            {
+                delete currentTest;
+                currentTest = testMenu;
+            }
 
-            shader.Bind();
-            shader.SetUniform4f("u_Color", 0.32f, 0.78f, 0.7f, 1.0f);
-            shader.SetUniformMat4f("u_MVP", mvpMatrix);
-            renderer.Draw(vertexArray, indexBuffer, shader);
-        }
-        {
-            glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), translationB);
-            glm::mat4 mvpMatrix = projectionMatrix * viewMatrix * modelMatrix; // must be in reverse order. matrix multiplication is _not_ commutitive
-
-            shader.Bind();
-            shader.SetUniform4f("u_Color", 0.32f, 0.78f, 0.7f, 1.0f);
-            shader.SetUniformMat4f("u_MVP", mvpMatrix);
-            renderer.Draw(vertexArray, indexBuffer, shader);
+            currentTest->OnImGuiRender();
+            ImGui::End();
         }
 
-        {
-            ImGui::Text("A:");
-            ImGui::SliderFloat("X##a", &translationA.x, 0.0f, 960.0f);
-            ImGui::SliderFloat("Y##a", &translationA.y, 0.0f, 540.0f);
-            ImGui::SliderFloat("Z##a", &translationA.z, 0.0f, 1.0f);
-
-            ImGui::Spacing();
-            ImGui::Text("B:");
-            ImGui::SliderFloat("X##b", &translationB.x, 0.0f, 960.0f);
-            ImGui::SliderFloat("Y##b", &translationB.y, 0.0f, 540.0f);
-            ImGui::SliderFloat("Z##b", &translationB.z, 0.0f, 1.0f);
-
-            ImGui::Text("%.3f ms (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        }
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -156,9 +108,13 @@ int main(int, char *argv[])
         glfwPollEvents();
     }
 
-    // ImGui::DestroyContext();
-    ImGui_ImplOpenGL3_Shutdown();
+    delete currentTest;
+    if (currentTest != testMenu)
+        delete testMenu;
+
     ImGui_ImplGlfw_Shutdown();
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui::DestroyContext();
     glfwTerminate();
     return 0;
 }
