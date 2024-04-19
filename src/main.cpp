@@ -22,6 +22,7 @@
 
 #include "lib/engine/tests/TestMenu.h"
 #include "lib/engine/tests/TestClearColor.h"
+#include "lib/engine/tests/TestTexture2D.h"
 
 #include "lib/data/Buffer/IndexBuffer.h"
 #include "lib/data/Buffer/VertexBuffer.h"
@@ -58,9 +59,9 @@ int main(int, char *argv[])
     GLCall(glEnable(GL_BLEND));
 
     argh::parser io(argv);
-    if (io[{"gld", "gldebug"}])
+    if (io[{"d", "debug"}])
     {
-        GLCall(std::cout << "[DEBUG]: OpenGL Version -> " << glGetString(GL_VERSION) << std::endl);
+        DEBUG = true;
     }
 
     Renderer renderer;
@@ -77,7 +78,12 @@ int main(int, char *argv[])
     currentTest = testMenu;
 
     testMenu->RegisterTest<test::TestClearColor>("Clear Color");
+    testMenu->RegisterTest<test::TestTexture2D>("Texture 2D");
 
+    if (DEBUG)
+    {
+        GLCall(std::cout << "[DEBUG]: OpenGL Version -> " << glGetString(GL_VERSION) << std::endl);
+    }
     while (!glfwWindowShouldClose(window))
     {
         renderer.Clear();
@@ -98,6 +104,9 @@ int main(int, char *argv[])
             }
 
             currentTest->OnImGuiRender();
+
+            // ImGui::Space();
+            test::RenderFPS();
             ImGui::End();
         }
 
