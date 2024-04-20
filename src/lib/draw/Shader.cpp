@@ -9,12 +9,34 @@
 #include "../../utils/String.h"
 #include "../../utils/OpenGL.h"
 #include "../../utils/FileReader.h"
+#include "../../utils/globals.h"
 
-Shader::Shader(const std::string &filepath)
-    : m_Filepath(filepath), m_RendererID(0), m_UniformLocationCache()
+Shader::Shader(const std::string &name, const ShaderProgramSource &source)
+    : m_Name(name), m_RendererID(0), m_UniformLocationCache()
 {
-    std::string rawShader = ReadFile(m_Filepath);
-    ShaderProgramSource shaders = Shader::ParseShader(rawShader);
+    m_RendererID = Shader::CreateShader(source.VertexSource, source.FragmentSource);
+}
+
+Shader::Shader(const std::string &name, const std::string &vertexFilepath, const std::string &fragmentFilepath) : m_Name(name), m_RendererID(0), m_UniformLocationCache()
+{
+
+    if(!Exists(vertexFilepath)){
+        std::cout << "[ERROR]: Vertex shader does not exist at " << vertexFilepath << std::endl;
+        ASSERT(false);
+    }
+
+    if(!Exists(fragmentFilepath)){
+        std::cout << "[ERROR]: Fragment shader does not exist at " << fragmentFilepath << std::endl;
+        ASSERT(false);
+    }
+
+    std::string rawVertexShader = ReadFile(vertexFilepath);
+    std::string rawFragmentShader = ReadFile(fragmentFilepath);
+
+    ShaderProgramSource shaders;
+    shaders.FragmentSource = rawFragmentShader;
+    shaders.VertexSource = rawVertexShader;
+
     m_RendererID = Shader::CreateShader(shaders.VertexSource, shaders.FragmentSource);
 }
 
@@ -62,9 +84,9 @@ int Shader::GetUniformLocation(const std::string &name)
     GLCall(int location = glGetUniformLocation(m_RendererID, name.c_str()));
     m_UniformLocationCache[name] = location;
 
-    if (location == -1)
+    if (location == -1 && DEBUG)
     {
-        std::cout << "[WARNING]: Useless uniform: " << name << " in " << m_Filepath << std::endl;
+        std::cout << "[WARNING]: Useless uniform " << name << " in shader " << m_Name << std::endl;
     }
     return location;
 }

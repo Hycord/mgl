@@ -27,3 +27,12 @@ std::string ReadFile(std::string location)
 
     return data;
 }
+
+bool Exists (const std::string name) {
+    if (FILE *file = fopen(name.c_str(), "r")) {
+        fclose(file);
+        return true;
+    } else {
+        return false;
+    }   
+}

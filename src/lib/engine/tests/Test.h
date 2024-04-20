@@ -24,6 +24,5 @@ namespace test
     virtual void OnImGuiRender() {}
   };
 
-  void RenderFPS();
 
 }

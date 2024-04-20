@@ -23,6 +23,8 @@ namespace test
                 m_CurrentTest = test.second();
             }
         }
-
+        if(ImGui::Button("Exit Debug Mode")){
+            DEBUG = false;
+        }
     }
 }

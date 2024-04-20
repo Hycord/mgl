@@ -6,7 +6,6 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "argh/argh.h"
-#include "lib/engine/tests/Test.h"
 
 #include "vendor/imgui/imgui.h"
 #include "vendor/imgui/imgui_impl_glfw.h"
@@ -15,11 +14,15 @@
 #include "utils/String.h"
 #include "utils/OpenGL.h"
 #include "utils/FileReader.h"
+#include "utils/Map.h"
 
 #include "lib/draw/Shader.h"
 #include "lib/draw/Renderer.h"
 #include "lib/draw/Texture.h"
 
+#include "lib/engine/Engine.h"
+
+#include "lib/engine/tests/Test.h"
 #include "lib/engine/tests/TestMenu.h"
 #include "lib/engine/tests/TestClearColor.h"
 #include "lib/engine/tests/TestTexture2D.h"
@@ -27,6 +30,7 @@
 #include "lib/data/Buffer/IndexBuffer.h"
 #include "lib/data/Buffer/VertexBuffer.h"
 #include "lib/data/Array/VertexArray.h"
+
 
 int main(int, char *argv[])
 {
@@ -45,6 +49,7 @@ int main(int, char *argv[])
         glfwTerminate();
         return -1;
     }
+
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
 
@@ -55,8 +60,13 @@ int main(int, char *argv[])
         return -1;
     }
 
-    GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-    GLCall(glEnable(GL_BLEND));
+    Engine engine(window);
+
+    glfwSetCursorPosCallback(window, OnCursorPosition);
+    glfwSetCursorEnterCallback(window, OnCursorFocusChange);
+    glfwSetMouseButtonCallback(window, OnMouseButtonStatusChange);
+    glfwSetScrollCallback(window, OnMouseScroll);
+    glfwSetKeyCallback(window, OnKeyboardStatusChange);
 
     argh::parser io(argv);
     if (io[{"d", "debug"}])
@@ -64,66 +74,14 @@ int main(int, char *argv[])
         DEBUG = true;
     }
 
-    Renderer renderer;
-
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui::StyleColorsDark();
-    ImGui_ImplOpenGL3_Init((char *)glGetString(330));
-
-    test::Test *currentTest = nullptr;
-
-    test::TestMenu *testMenu = new test::TestMenu(currentTest);
-    currentTest = testMenu;
-
-    testMenu->RegisterTest<test::TestClearColor>("Clear Color");
-    testMenu->RegisterTest<test::TestTexture2D>("Texture 2D");
-
     if (DEBUG)
     {
         GLCall(std::cout << "[DEBUG]: OpenGL Version -> " << glGetString(GL_VERSION) << std::endl);
     }
     while (!glfwWindowShouldClose(window))
     {
-        renderer.Clear();
-
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        if (currentTest)
-        {
-            currentTest->OnUpdate(0.0f);
-            currentTest->OnRender();
-            ImGui::Begin("Test");
-            if (currentTest != testMenu && ImGui::Button("Home"))
-            {
-                delete currentTest;
-                currentTest = testMenu;
-            }
-
-            currentTest->OnImGuiRender();
-
-            // ImGui::Space();
-            test::RenderFPS();
-            ImGui::End();
-        }
-
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        engine.Render();
     }
 
-    delete currentTest;
-    if (currentTest != testMenu)
-        delete testMenu;
-
-    ImGui_ImplGlfw_Shutdown();
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui::DestroyContext();
-    glfwTerminate();
     return 0;
 }

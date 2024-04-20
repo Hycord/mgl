@@ -40,7 +40,7 @@ namespace test
     m_VertexArray->AddBuffer(*m_VertexBuffer, vbLayout);
     m_IndexBuffer = std::make_unique<IndexBuffer>(indices, 6);
 
-    m_Shader = std::make_unique<Shader>("static/shader.glsl");
+    m_Shader = std::make_unique<Shader>("defailt", "static/shaders/default.vs", "static/shaders/default.fs");
     m_Shader->Bind();
     m_Shader->SetUniform4f("u_Color", 0.32f, 0.78f, 0.7f, 1.0f);
 
@@ -59,20 +59,17 @@ namespace test
     m_Texture->Bind();
 
     {
-      glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), m_TranslationA);
-      glm::mat4 mvpMatrix = m_ProjectionMatrix * m_ViewMatrix * modelMatrix; // must be in reverse order. matrix multiplication is _not_ commutitive
+      glm::mat4 modelMatrixA = glm::translate(glm::mat4(1.0f), m_TranslationA);
+      glm::mat4 mvpMatrix = m_ProjectionMatrix * m_ViewMatrix * modelMatrixA; // must be in reverse order. matrix multiplication is _not_ commutitive
 
       m_Shader->Bind();
-      m_Shader->SetUniform4f("u_Color", 0.32f, 0.78f, 0.7f, 1.0f);
       m_Shader->SetUniformMat4f("u_MVP", mvpMatrix);
-      renderer.Draw(*m_VertexArray, *m_IndexBuffer, *m_Shader);
-    }
-    {
-      glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), m_TranslationB);
-      glm::mat4 mvpMatrix = m_ProjectionMatrix * m_ViewMatrix * modelMatrix; // must be in reverse order. matrix multiplication is _not_ commutitive
-
-      m_Shader->Bind();
       m_Shader->SetUniform4f("u_Color", 0.32f, 0.78f, 0.7f, 1.0f);
+
+      renderer.Draw(*m_VertexArray, *m_IndexBuffer, *m_Shader);
+
+      glm::mat4 modelMatrixB = glm::translate(glm::mat4(1.0f), m_TranslationB);
+      mvpMatrix = m_ProjectionMatrix * m_ViewMatrix * modelMatrixB; // must be in reverse order. matrix multiplication is _not_ commutitive
       m_Shader->SetUniformMat4f("u_MVP", mvpMatrix);
       renderer.Draw(*m_VertexArray, *m_IndexBuffer, *m_Shader);
     }
@@ -90,6 +87,5 @@ namespace test
     ImGui::SliderFloat("X##b", &m_TranslationB.x, 0.0f, 960.0f);
     ImGui::SliderFloat("Y##b", &m_TranslationB.y, 0.0f, 540.0f);
     ImGui::SliderFloat("Z##b", &m_TranslationB.z, 0.0f, 1.0f);
-
   };
 }
