@@ -24,10 +24,11 @@ Engine::Engine(GLFWwindow *window)
     io.IniFilename = nullptr;
 
     m_TestMenu = new test::TestMenu(m_CurrentTest);
-    m_CurrentTest = m_TestMenu;
+    m_CurrentTest = new test::TestTexture3D();
 
     m_TestMenu->RegisterTest<test::TestClearColor>("Clear Color");
     m_TestMenu->RegisterTest<test::TestTexture2D>("Texture 2D");
+    m_TestMenu->RegisterTest<test::TestTexture3D>("Texture 3D");
 }
 
 Engine::~Engine()
@@ -76,6 +77,8 @@ void Engine::Render()
 
             RenderFPS();
             // ImGui::Text("Window Contains Mouse: " << MOUSE.hovering ? "True" : "False");
+            ImGui::Text("Window Size: (%i, %i)", WINDOW.width, WINDOW.height);
+
             bool hovering = MOUSE.hovering;
             ImGui::Checkbox("Window Contains Mouse", &hovering);
             bool dragging = MOUSE.dragging;

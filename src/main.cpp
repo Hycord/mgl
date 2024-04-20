@@ -31,18 +31,22 @@
 #include "lib/data/Buffer/VertexBuffer.h"
 #include "lib/data/Array/VertexArray.h"
 
-
 int main(int, char *argv[])
 {
     if (!glfwInit())
         return -1;
+    argh::parser io(argv);
+    if (io[{"d", "debug"}])
+    {
+        DEBUG = true;
+    }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow *window;
-    window = glfwCreateWindow(960, 540, "MGL", NULL, NULL);
+    window = glfwCreateWindow(WINDOW.width, WINDOW.height, "MGL", NULL, NULL);
     if (!window)
     {
         std::cout << "[GLFW ERROR]: Failed to create window" << std::endl;
@@ -67,12 +71,7 @@ int main(int, char *argv[])
     glfwSetMouseButtonCallback(window, OnMouseButtonStatusChange);
     glfwSetScrollCallback(window, OnMouseScroll);
     glfwSetKeyCallback(window, OnKeyboardStatusChange);
-
-    argh::parser io(argv);
-    if (io[{"d", "debug"}])
-    {
-        DEBUG = true;
-    }
+    glfwSetWindowSizeCallback(window, OnWindowSizeChange);
 
     if (DEBUG)
     {

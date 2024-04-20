@@ -15,6 +15,11 @@
 // 0.32f, 0.78f, 0.7f, 1.0f
 
 extern bool DEBUG;
+struct Window {
+  int width;
+  int height;
+};
+extern Window WINDOW;
 
 struct Mouse
 {
@@ -38,7 +43,7 @@ struct ModifierKeys
   bool control;
   bool alt;
   bool shift;
-  
+
   bool super;
   bool capslock;
   bool numlock;

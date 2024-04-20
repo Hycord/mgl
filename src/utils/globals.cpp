@@ -27,3 +27,5 @@ Keys KEYS = {
         .capslock = false,
         .numlock = false,
     }};
+
+Window WINDOW = {1000, 800};

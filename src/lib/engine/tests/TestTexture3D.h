@@ -1,6 +1,6 @@
 /*
-  TestTexture2D.h
-  Created: April 18, 2024
+  TestTexture3D.h
+  Created: April 20, 2024
 */
 
 #pragma once
@@ -30,11 +30,11 @@
 namespace test
 {
 
-  class TestTexture2D : public Test
+  class TestTexture3D : public Test
   {
   public:
-    TestTexture2D();
-    ~TestTexture2D();
+    TestTexture3D();
+    ~TestTexture3D();
 
     void OnUpdate(float deltaTime) override;
     void OnRender() override;
@@ -47,7 +47,10 @@ namespace test
     std::unique_ptr<Shader> m_Shader;
     std::unique_ptr<Texture> m_Texture;
 
-    glm::vec3 m_TranslationA, m_TranslationB;
+    glm::vec3 m_Translation;
     glm::mat4 m_ProjectionMatrix, m_ViewMatrix;
+
+    double m_Time;
+    float m_Rotation;
   };
 }

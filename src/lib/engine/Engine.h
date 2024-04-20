@@ -22,6 +22,7 @@
 #include "./tests/TestMenu.h"
 #include "./tests/TestClearColor.h"
 #include "./tests/TestTexture2D.h"
+#include "./tests/TestTexture3D.h"
 
 class Engine
 {

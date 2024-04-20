@@ -27,3 +27,4 @@ void OnCursorFocusChange(GLFWwindow *window, int entered);
 void OnMouseButtonStatusChange(GLFWwindow *window, int button, int action, int mods);
 void OnMouseScroll(GLFWwindow *window, double xoffset, double yoffset);
 void OnKeyboardStatusChange(GLFWwindow *window, int key, int scancode, int action, int mods);
+void OnWindowSizeChange(GLFWwindow* window, int width, int height);

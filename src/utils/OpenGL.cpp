@@ -296,7 +296,7 @@ void OnCursorFocusChange(GLFWwindow *window, int entered)
 		MOUSE.hovering = true;
 	}
 	else
-	
+
 	{
 		// The cursor left the content area of the window
 		MOUSE.hovering = false;
@@ -369,4 +369,10 @@ void OnKeyboardStatusChange(GLFWwindow *window, int key, int scancode, int actio
 	{
 		DEBUG = true;
 	}
+}
+
+void OnWindowSizeChange(GLFWwindow *window, int width, int height)
+{
+	WINDOW.width = width;
+	WINDOW.height = height;
 }
