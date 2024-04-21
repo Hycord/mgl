@@ -5,12 +5,12 @@ layout(location=1)in vec2 texCoord;
 
 out vec2 v_TexCoord;
 
+
+uniform mat4 u_CameraMatrix;
 uniform mat4 u_Model;
-uniform mat4 u_View;
-uniform mat4 u_Projection;
 
 void main()
 {
-    gl_Position=u_Projection*u_View*u_Model*position;
+    gl_Position=u_CameraMatrix*u_Model*position;
     v_TexCoord=texCoord;
 };

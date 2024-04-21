@@ -17,11 +17,6 @@ namespace test
         m_ViewMatrix(1.0f /* glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)) */)
 
   {
-    std::cout << "startin 3d" << std::endl;
-
-    // m_ViewMatrix = glm::translate(m_ViewMatrix, glm::vec3(0.0f, -0.5f, -2.0f));
-    // m_ProjectionMatrix = glm::perspective(glm::radians(45.0f), (float)(WINDOW.width / WINDOW.height), 0.1f, 100.0f);
-
     float vertexes[] = {
 
         -0.5f, 0.0f, -0.5f,

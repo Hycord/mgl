@@ -54,6 +54,8 @@ int main(int, char *argv[])
         return -1;
     }
 
+    WINDOW.glwindow = window;
+
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
 

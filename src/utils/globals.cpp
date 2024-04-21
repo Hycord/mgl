@@ -28,4 +28,4 @@ Keys KEYS = {
         .numlock = false,
     }};
 
-Window WINDOW = {1000, 800};
+Window WINDOW = {.width=1000, .height=800, .glwindow=nullptr};

@@ -23,6 +23,7 @@
 #include "./tests/TestClearColor.h"
 #include "./tests/TestTexture2D.h"
 #include "./tests/TestTexture3D.h"
+#include "./tests/TestCamera.h"
 
 class Engine
 {

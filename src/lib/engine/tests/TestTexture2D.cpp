@@ -12,7 +12,7 @@ namespace test
   TestTexture2D::TestTexture2D()
       : m_TranslationA(100, 200, 0),
         m_TranslationB(200, 400, 0),
-        m_ProjectionMatrix(glm::ortho(0.0f, (float)WINDOW.width, 0.0f, (float)WINDOW.height, -1.0f, 1.0f)),
+        m_ProjectionMatrix(glm::ortho(0.0f, (float)WINDOW.width, 0.0f, (float)WINDOW.height, 1.0f, -1.0f)),
         m_ViewMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)))
 
   {
@@ -33,6 +33,7 @@ namespace test
 
     GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     GLCall(glEnable(GL_BLEND));
+    GLCall(glEnable(GL_DEPTH_TEST));
 
     m_VertexArray = std::make_unique<VertexArray>();
 
@@ -43,7 +44,7 @@ namespace test
     vbLayout.Push<float>(2);
 
     m_VertexArray->AddBuffer(*m_VertexBuffer, vbLayout);
-    m_IndexBuffer = std::make_unique<IndexBuffer>(indices, 6);
+    m_IndexBuffer = std::make_unique<IndexBuffer>(indices, sizeof(indices));
 
     m_Shader = std::make_unique<Shader>("defailt", "static/shaders/default.vs", "static/shaders/default.fs");
     m_Shader->Bind();
@@ -59,7 +60,7 @@ namespace test
   void TestTexture2D::OnRender()
   {
     GLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-    GLCall(glClear(GL_COLOR_BUFFER_BIT));
+    GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     Renderer renderer;
     m_Texture->Bind();
 
@@ -77,7 +78,9 @@ namespace test
       renderer.Draw(*m_VertexArray, *m_IndexBuffer, *m_Shader);
 
       glm::mat4 modelMatrixB = glm::translate(glm::mat4(1.0f), m_TranslationB);
+      m_Shader->SetUniformMat4f("u_Projection", m_ProjectionMatrix);
       m_Shader->SetUniformMat4f("u_Model", modelMatrixB);
+      m_Shader->SetUniformMat4f("u_View", m_ViewMatrix);
 
       // mvpMatrix = m_ProjectionMatrix * m_ViewMatrix * modelMatrixB; // must be in reverse order. matrix multiplication is _not_ commutitive
       // m_Shader->SetUniformMat4f("u_MVP", mvpMatrix);
